@@ -17,18 +17,18 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.update();
 
 const radius = 3;
-const tubeLength = 10;
+const tubeLength = 100;
 const geo = new THREE.CylinderGeometry(
   radius,
   radius,
   tubeLength,
   32,
-  256,
+  2048,
   true
 );
 const tubeVerts = geo.attributes.position;
 
-const mat = new THREE.PointsMaterial({ color: 0x0099ff, size: 0.25 });
+const mat = new THREE.PointsMaterial({ color: 0x0099ff, size: 0.05 });
 const points = new THREE.Points(geo, mat);
 points.rotation.x = Math.PI / 2;
 scene.add(points);
@@ -36,7 +36,8 @@ scene.add(points);
 let p = new THREE.Vector3();
 let v3 = new THREE.Vector3();
 const noise = new ImprovedNoise();
-let noiseFreq = 0.9;
+let noiseFreq = 0.2;
+let noiseAmp = 0.5;
 
 for (let i = 0; i < tubeVerts.length; i++) {
   p.fromBufferAttribute(tubeVerts, i);
@@ -46,9 +47,12 @@ for (let i = 0; i < tubeVerts.length; i++) {
     v3.y * noiseFreq,
     v3.z * noiseFreq
   );
-  v3.addScaledVector(p, vertexNoise);
-  tubeVerts.setXYZ(i, v3.x, v3.y, v3.z);
+  v3.addScaledVector(p, vertexNoise * noiseAmp);
+  tubeVerts.setXYZ(i, v3.x, p.y, v3.z);
 }
+
+console.log(v3);
+console.log("Tube Vertices:", tubeVerts);
 
 function animate(t) {
   requestAnimationFrame(animate);

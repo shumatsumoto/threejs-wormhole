@@ -12,6 +12,10 @@ scene.fog = new THREE.FogExp2(0x000000, 0.01);
 renderer.setSize(w, h);
 document.body.appendChild(renderer.domElement);
 
+// Orbit Controls
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.update();
+
 const radius = 3;
 const tubeLength = 10;
 const geo = new THREE.CylinderGeometry(
@@ -22,10 +26,29 @@ const geo = new THREE.CylinderGeometry(
   256,
   true
 );
-const mat = new THREE.PointsMaterial({ color: 0x0099ff, size: 0.1 });
+const tubeVerts = geo.attributes.position;
+
+const mat = new THREE.PointsMaterial({ color: 0x0099ff, size: 0.25 });
 const points = new THREE.Points(geo, mat);
 points.rotation.x = Math.PI / 2;
 scene.add(points);
+
+let p = new THREE.Vector3();
+let v3 = new THREE.Vector3();
+const noise = new ImprovedNoise();
+let noiseFreq = 0.9;
+
+for (let i = 0; i < tubeVerts.length; i++) {
+  p.fromBufferAttribute(tubeVerts, i);
+  v3.copy(p);
+  let vertexNoise = noise.noise(
+    v3.x * noiseFreq,
+    v3.y * noiseFreq,
+    v3.z * noiseFreq
+  );
+  v3.addScaledVector(p, vertexNoise);
+  tubeVerts.setXYZ(i, v3.x, v3.y, v3.z);
+}
 
 function animate(t) {
   requestAnimationFrame(animate);

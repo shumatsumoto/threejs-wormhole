@@ -28,7 +28,11 @@ const geo = new THREE.CylinderGeometry(
 );
 const tubeVerts = geo.attributes.position;
 
-const mat = new THREE.PointsMaterial({ color: 0x0099ff, size: 0.05 });
+const mat = new THREE.PointsMaterial({
+  color: 0x0099ff,
+  size: 0.05,
+  vertexColors: true,
+});
 const points = new THREE.Points(geo, mat);
 points.rotation.x = Math.PI / 2;
 scene.add(points);
@@ -37,7 +41,11 @@ let p = new THREE.Vector3();
 let v3 = new THREE.Vector3();
 const noise = new ImprovedNoise();
 let noiseFreq = 0.2;
+let hueNoiseFreq = 0.1;
+const col = new THREE.Color();
+
 let noiseAmp = 0.5;
+const colors = [];
 
 for (let i = 0; i < tubeVerts.length; i++) {
   p.fromBufferAttribute(tubeVerts, i);
@@ -49,7 +57,17 @@ for (let i = 0; i < tubeVerts.length; i++) {
   );
   v3.addScaledVector(p, vertexNoise * noiseAmp);
   tubeVerts.setXYZ(i, v3.x, p.y, v3.z);
+
+  let hueNoise = noise.noise(
+    v3.x * hueNoiseFreq,
+    v3.y * hueNoiseFreq,
+    v3.z * hueNoiseFreq
+  );
+  col.setHSL(hueNoise, 1, 0.5);
+  colors.push(col.r, col.g, col.b);
 }
+
+geo.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
 
 console.log(v3);
 console.log("Tube Vertices:", tubeVerts);
@@ -58,7 +76,7 @@ function animate(t) {
   requestAnimationFrame(animate);
   // camera.position.x = Math.cos(t * 0.001) * 1.5;
   // camera.position.y = Math.sin(t * 0.001) * 1.5;
-  points.rotation.y += 0.01;
+  points.rotation.y += 0.002;
   renderer.render(scene, camera);
 }
 
